@@ -15,9 +15,11 @@ def create_url(jobname, location):
 
 def get_all_vacancies(url):
     soup = BeautifulSoup( requests.get(url).content, "html.parser") # Reading Webpage into BeatifulSoup
-    vacancies_list = soup.find_all('ul', _class = "jobsearch-ResultsList css-0")
-    for vacancy in vacancies_list:
-        printer.pprint(vacancy)
+    ## Need to implement getting all the cards (vacancies)
+    
+    # vacancies_list = soup.find_all('ul', _class = "jobsearch-ResultsList css-0")
+    # for vacancy in vacancies_list:
+    #     printer.pprint(vacancy)
 
 
 
