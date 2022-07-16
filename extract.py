@@ -9,17 +9,28 @@ from time import sleep
 
 printer = pprint.PrettyPrinter()
 
-def create_url(jobname, location):
+def create_url(jobname:str, location:str) -> str:
+    """
+    Function to generate indeed Url based on Jobname and Location. 
+    Accepts Jobname with spaces
+    """
     jobname_without_spaces = str(jobname).replace(' ', '%20')
     return f'https://nl.indeed.com/jobs?q={jobname_without_spaces}&l={location}'
 
-def get_all_vacancies(url):
+def get_all_vacancies(url:str) -> list:
+    """
+    Based on valid Indeed url grabs all sub-urls for vacancies on the page. 
+    Loops through Indeed and to prevent bot detection rand sleep are added. 
+    """
+    vacancies_url = [] # Empty list to append sub-urls. 
     soup = BeautifulSoup( requests.get(url).content, "html.parser") # Reading Webpage into BeatifulSoup
-    ## Need to implement getting all the cards (vacancies)
-    
-    # vacancies_list = soup.find_all('ul', _class = "jobsearch-ResultsList css-0")
-    # for vacancy in vacancies_list:
-    #     printer.pprint(vacancy)
+    jobcards = soup.find('div', id = 'mosaic-provider-jobcards') # Locating part of webpage with only vacancies. 
+    jobcards_headers = jobcards.find_all('h2') # find all Jobheaders (Titles)
+    # Iterate over every Title to grab the url. 
+    for header in jobcards_headers:
+        url = "https://nl.indeed.com" + header.find('a')['href'] # Add base url to href output. 
+        vacancies_url.append(url) # add found url to list
+    return vacancies_url # return list. 
 
 
 
