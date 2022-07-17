@@ -7,6 +7,7 @@ import pprint
 from random import randint
 from time import sleep
 from datetime import datetime
+import hashlib
 
 printer = pprint.PrettyPrinter()
 
@@ -33,68 +34,74 @@ def get_all_vacancies(url:str) -> list:
         vacancies_url.append(url) # add found url to list
     return vacancies_url # return list. 
 
-def write_vacancy_details(vacancies_url, MongoDB_connectionstring:str=''):
+def write_vacancy_details(function:str, vacancies_urls:list, MongoDB_connectionstring:str):
     """
     Grabs all vacancy details and writes them to MongoDB
-    """ 
-    # for vacancy in vacancies_url:
-    #     pass
-    vacancy = vacancies_url
-    soup = BeautifulSoup( requests.get(vacancy).content, "html.parser")
-    # Title
-    job_title = soup.find('h1').text
-    # Organization
-    organization = soup.find('a', href=True, target="_blank").text
+    """
+    database_name = function.replace(" ", "_") # for functions with spaces
+    # Set up MongoDB Connection
+    client = MongoClient(MongoDB_connectionstring) 
+    # Connect to right Database
+    db = client[database_name]
+    # Connect to STG collection
+    collection = db.stg
+    for vacancy in vacancies_urls:
+            
+        soup = BeautifulSoup( requests.get(vacancy).content, "html.parser")
 
-    # Location
-    location_list = [] # Create empty list to iterate reviews 
-    # Only way found to access location is to go up the HTML Tree from organizaiton and iterate through. 
-    parent_location = soup.find('a', href=True, target="_blank").parent.parent.parent.parent # Go up 4 levels to neccesary tags. 
-    for item in parent_location: # Iterate through all items
-        if "reviews" not in item.text and len(item.text) != 0: # Check if not Reviews or Empty
-            location =item.text
+        # Title
+        job_title = soup.find('h1').text
 
-    # Placed
+        # Organization
+        organization = soup.find('a', href=True, target="_blank").text
 
-    # Original Vacancy Url
+        # Location
+        parent_location = soup.find('div', {"class":"icl-u-xs-mt--xs icl-u-textColor--secondary jobsearch-JobInfoHeader-subtitle jobsearch-DesktopStickyContainer-subtitle"})
+        for element in parent_location:
+            if "reviews" not in element.text and len(element.text) != 0:
+                location = element.text
 
+        # Placed
+        parent_placed = soup.find('div', {"class": "jobsearch-JobMetadataFooter"})
+        for element in parent_placed:
+            if element.text.__contains__("geleden"):
+                placed = element.text
+        
+        # Original Vacancy Url
+        try: # try and except blok because not always present
+            orginal_vacancy_url_element = soup.find('a', {"target":"_blank", "rel": "noopener", "href":True})
+            orginal_vacancy_url = orginal_vacancy_url_element['href']
+        except Exception as e:
+            orginal_vacancy_url = ""
 
-write_vacancy_details('https://nl.indeed.com/viewjob?jk=bc45e0c30c4ce14f&q=Data+engineer&l=Enschede&tk=1g82vgbf8t1d0800&from=web&advn=8813502495358742&adid=383528202&ad=-6NYlbfkN0BQXeCo6iQsOwfgbj3luE1nO6L4Vj-ELuIdrTHanxZxHI4-9xKHVXue-MyuGV8G6_FvUQ0QJylCtdA8PEobwfG69EnHMJvsEsBARLe5ioD4SeO96C6_MDlPTkzrnbWEFb3qb0XwCw8WsZSDNceDTGnQisKYjWdByWQgO4FjKolALqGGx3KrN7s4Vr0cqcQgO2GjFlllFd0o4WfypwKOf_WAO4k0KqDOYtQCkkSGQa4LYz3vqDJy9MONm2VW-FaD89Db6A9G1XTDImLs5nJ9MoJ0SQwrWiqHonnv-mGEJqsRs2UvYhbRoyvSrFSYeH8mIyUlwAKT5KRrJl636-y6-5b5S4qxMmDoaZ-RlzGp-GvEfHh8cpnWx8zUls5JgGoTIAVjhJDdVsXSKQ%3D%3D&sjdu=4RLhhBSsAM57rxUjDStJRlrIetrQ-fUgEWmcIQQjBfCDGcOD5D3SC6zBySn3TDS1XySf2yPw9MOi8dkRfB_FOQxhqyZ971mqcawhFaU-xooHscHXUw1NIR0t1GG6nPwAYReB1mlge_CAtkDaHg3Go6g5uQl8PP8RjzBfINmFIxM&acatk=1g8335sfnjkn2802&pub=4a1b367933fd867b19b072952f68dceb&vjs=3')
+        #Vacancy_hash
+        md5 = hashlib.md5() # set up hash
+        md5.update(f"{job_title}~{organization}".encode("utf-8")) # Encode and Hash 
+        vacancy_hash = md5.hexdigest()
 
-write_vacancy_details('https://nl.indeed.com/viewjob?jk=f29ee9aae0e47e71&tk=1g832puvcjrgq803&from=serp&vjs=3&advn=5288612019923067&adid=364948793&ad=-6NYlbfkN0CaMwcIE_TkZUTeIdAT5IIiBYk61nE_g7Y-C7FX13p17SzfeBQwQ5CUHzAX8n9HoA3eBtJiL1Q7OTn4YzQlXR3LiGKBWTa_Zdq7q1gUkqWq01wBh_xh4iWwZ2OHFpR5HnFR2lambwWsxERoghqNkMcAtDgijTaA9Ma8HLNVc10RS1lL3q5mBt4uw_9n0QIaQCttlc3qfXA_Vxwwgguil8wxdo3IgpiK-mnSqJAqeCQAXocrzbITgZluUf0uvI4QQzV9FbacWaoBQH4unVGh2OToM_r0LL8V5i89TqgHlQcUAnl5Wecw3vonKLBJixHf3x1ZE0SW4v2LTZR1vcteM9IT9oeg_flOvy--EqQcz8PmxxFwK1fmxW8Q&sjdu=r_PaUU6fJg3c3GnYd8ltBMxfj2NrrNFLn790zfCdRp6plHtkcYy1HzSu2heMaw2_XAkfFoD4stLe1Iz2LAkw6jrA2cw13GLLfhnJCtVcUrbAn4-ZXbm4dxI-7x6J1tDNKIb6lU6CAnTBnWvN4kEeI2B5npp0dD6XC8LnQRdO-1M')
+        #Vacancy_text
+        vacancy_text_raw = soup.find('div', {"id":"jobDescriptionText", "class":"jobsearch-jobDescriptionText"})
+        vacancy_text = vacancy_text_raw.text
 
-example_output_dict = {
-    "Job_title": "Data Engineer", 
-    "Organization": "HAYS",
-    "Location": "Enschede",
-    "Placed": "30+ dagen geleden geplaatst",
-    "Original Vacancy Url": "https://m.hays.nl/Job/Detail/data-engineer-enschede-nl-NL_1044229",
-    "Load_dts": datetime.today(),
-    "LastSeen_dts": "",
-    "Vacancy_hash": "",
-    "Vacancy_text": "storytime"
+        #Construct JSON output
+        vacancy_document = {
+            "Job_title": job_title, 
+            "Organization": organization,
+            "Location": location,
+            "Placed": placed,
+            "Original Vacancy Url": orginal_vacancy_url,
+            "Load_dts": datetime.today(),
+            "LastSeen_dts": datetime.today(),
+            "Vacancy_hash": vacancy_hash,
+            "Vacancy_text": vacancy_text
+        }
+        collection.insert_one(vacancy_document) # insert in the STG collection
+    print("Succes")
 
-}
+if __name__ == "__main__":
+    url = create_url("Data Engineer", "Enschede")
+    url_list = get_all_vacancies(url)
+    write_vacancy_details("Data Engineer", url_list, "mongodb://localhost:27017")
 
-
-
-
-# ##### MongoDB connection and insertions
-# # Create MongoDB client 
-# client = MongoClient("mongodb://localhost:27017")
-
-# # Create test database
-# test_db = client['test']
-
-# def insert_test_doc():
-#     collection = test_db.test
-#     test_document = {
-#         "name": "Gikamax",
-#         "It works": 0
-#     }
-#     collection.insert_one(test_document)
-#     print("Succes")
-
-# insert_test_doc()
 
 
