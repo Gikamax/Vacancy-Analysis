@@ -25,13 +25,33 @@ def get_all_vacancies(url:str) -> list:
     Loops through Indeed and to prevent bot detection rand sleep are added. 
     """
     vacancies_url = [] # Empty list to append sub-urls. 
-    soup = BeautifulSoup( requests.get(url).content, "html.parser") # Reading Webpage into BeatifulSoup
-    jobcards = soup.find('div', id = 'mosaic-provider-jobcards') # Locating part of webpage with only vacancies. 
-    jobcards_headers = jobcards.find_all('h2') # find all Jobheaders (Titles)
-    # Iterate over every Title to grab the url. 
-    for header in jobcards_headers:
-        url = "https://nl.indeed.com" + header.find('a')['href'] # Add base url to href output. 
-        vacancies_url.append(url) # add found url to list
+    next_page_exits = True # Variable to control while loop
+    counter = 1 # Counter to control webpage selection
+    page_dict = {} # Empty Dict to prevent exiting with error. 
+
+    while next_page_exits: # To go over all webpages
+        # Getting Vacancies on current page
+        soup = BeautifulSoup( requests.get(url).content, "html.parser") # Reading Webpage into BeatifulSoup
+        jobcards = soup.find('div', id = 'mosaic-provider-jobcards') # Locating part of webpage with only vacancies. 
+        jobcards_headers = jobcards.find_all('h2') # find all Jobheaders (Titles)
+        # Iterate over every Title to grab the url. 
+        for header in jobcards_headers:
+            if "data" in header.text.lower(): # Filter Vacancies that have Data in it. 
+                url = "https://nl.indeed.com" + header.find('a')['href'] # Add base url to href output. 
+                vacancies_url.append(url) # add found url to list
+        
+        #Finding next webpage
+        parent_navigation = soup.find('ul', {"class": "pagination-list"}) # Find Navigation panel on bottom of the page
+        for element in parent_navigation: # Loop through all possible values
+            if element.text != "\n" and element.text != "" and int(element.text) != counter: # Text can be \n, " " and equal to current page, these must be avoided
+                page_dict[int(element.text)] = "https://nl.indeed.com" + element.find('a', href = True)['href'] # Add to Dic Pagenumber with correct Url 
+        counter += 1 # Set counter +1
+        try: # Try setting new url to new page
+            url = page_dict[counter] 
+        except Exception as e: # If fails then print exception
+            print(e)
+            next_page_exits = False
+        
     return vacancies_url # return list. 
 
 def write_vacancy_details(function:str, vacancies_urls:list, MongoDB_connectionstring:str):
