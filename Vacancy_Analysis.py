@@ -217,11 +217,45 @@ class VacancyAnalysis:
                                 }
                             }
                         )
-            
+        
+        def mark_status(self):
+            """
+            If Vacancy has LastSeen_dts of Today then marks status as active or inactive. 
+            """
+            # Iterate over all documents in the datastore, while grabbing only _id and LastSeen_dts
+            for document in datastore.find({}, {"_id": 1, "LastSeen_dts":1}):
+                _id = ObjectId(document["_id"])
+                if document['LastSeen_dts'].strftime("%Y-%m-%d") == datetime.today().strftime("%Y-%m-%d"): #Check if the document has been seen today
+                    # Create field Status and set to active
+                    datastore.update_one(
+                        {
+                            "_id":_id
+                        },
+                        {
+                            "$set":
+                            {
+                                "Status": "Active"
+                            }
+                        }
+                    )
+                else:
+                    # Create field Status and set to inactive
+                    datastore.update_one(
+                        {
+                            "_id":_id
+                        },
+                        {
+                            "$set":
+                            {
+                                "Status": "Inactive"
+                            }
+                        }
+                    )
 
         # Call inner functions
         #update_datastore(self)
         mark_new(self)
+        mark_status(self)
 
 
 
