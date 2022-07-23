@@ -37,7 +37,7 @@ class VacancyAnalysis:
 
             while next_page_exits: # To go over all webpages
 
-                sleep(randint(0,10)) # Add random waittime to avoid bot detection 
+                #sleep(randint(0,10)) # Add random waittime to avoid bot detection 
 
                 # Getting Vacancies on current page
                 soup = BeautifulSoup( get(url).content, "html.parser") # Reading Webpage into BeatifulSoup
@@ -46,7 +46,7 @@ class VacancyAnalysis:
                 # Iterate over every Title to grab the url. 
                 for header in jobcards_headers:
                     
-                    sleep(randint(0,10)) # Add random waittime to avoid bot detection
+                    #sleep(randint(0,10)) # Add random waittime to avoid bot detection
 
                     if "data" in header.text.lower(): # Filter Vacancies that have Data in it. 
                         url = "https://nl.indeed.com" + header.find('a')['href'] # Add base url to href output. 
@@ -83,7 +83,7 @@ class VacancyAnalysis:
             # Loop over Vacancies
             for vacancy in vacancies_urls:
 
-                sleep(randint(0,10)) # Add random waittime to avoid bot detection
+                #sleep(randint(0,10)) # Add random waittime to avoid bot detection
 
                 # Read in Vacancy to Soup    
                 soup = BeautifulSoup( get(vacancy).content, "html.parser")
@@ -114,9 +114,9 @@ class VacancyAnalysis:
                     orginal_vacancy_url = ""
 
                 #Vacancy_hash
-                md5 = md5() # set up hash
-                md5.update(f"{job_title}~{organization}".encode("utf-8")) # Encode and Hash 
-                vacancy_hash = md5.hexdigest()
+                hasher = md5() # set up hash
+                hasher.update(f"{job_title}~{organization}".encode("utf-8")) # Encode and Hash 
+                vacancy_hash = hasher.hexdigest()
 
                 #Vacancy_text
                 vacancy_text_raw = soup.find('div', {"id":"jobDescriptionText", "class":"jobsearch-jobDescriptionText"})
