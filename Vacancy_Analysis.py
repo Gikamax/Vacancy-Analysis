@@ -5,7 +5,7 @@ from requests import get
 from random import randint
 from time import sleep
 from datetime import datetime
-import hashlib
+from hashlib import md5
 
 class VacancyAnalysis:
 
@@ -36,12 +36,18 @@ class VacancyAnalysis:
             page_dict = {} # Empty Dict to prevent exiting with error. 
 
             while next_page_exits: # To go over all webpages
+
+                sleep(randint(0,10)) # Add random waittime to avoid bot detection 
+
                 # Getting Vacancies on current page
                 soup = BeautifulSoup( get(url).content, "html.parser") # Reading Webpage into BeatifulSoup
                 jobcards = soup.find('div', id = 'mosaic-provider-jobcards') # Locating part of webpage with only vacancies. 
                 jobcards_headers = jobcards.find_all('h2') # find all Jobheaders (Titles)
                 # Iterate over every Title to grab the url. 
                 for header in jobcards_headers:
+                    
+                    sleep(randint(0,10)) # Add random waittime to avoid bot detection
+
                     if "data" in header.text.lower(): # Filter Vacancies that have Data in it. 
                         url = "https://nl.indeed.com" + header.find('a')['href'] # Add base url to href output. 
                         vacancies_url.append(url) # add found url to list
@@ -73,7 +79,9 @@ class VacancyAnalysis:
 
             # Loop over Vacancies
             for vacancy in vacancies_urls:
-                print(f"Start Reading in {vacancy}")
+
+                sleep(randint(0,10)) # Add random waittime to avoid bot detection
+
                 # Read in Vacancy to Soup    
                 soup = BeautifulSoup( get(vacancy).content, "html.parser")
 
@@ -103,7 +111,7 @@ class VacancyAnalysis:
                     orginal_vacancy_url = ""
 
                 #Vacancy_hash
-                md5 = hashlib.md5() # set up hash
+                md5 = md5() # set up hash
                 md5.update(f"{job_title}~{organization}".encode("utf-8")) # Encode and Hash 
                 vacancy_hash = md5.hexdigest()
 
