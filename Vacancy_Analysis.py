@@ -275,6 +275,38 @@ class VacancyAnalysis:
                         {"_id":_id}
                     )
         
+        def add_vacancy_age(self):
+            """
+            Function to add information about the Vacancy_age based on Load_dts and Placed. 
+            """
+            #Iterate over all documents in the datastore, while grabbing only _id, load_dts and placed
+            for document in datastore.find({}, {"_id":1, "Load_dts":1, "Placed":1}):
+                # Extract Number of Days placed from Placed
+                if "+" in document['Placed'].split()[0]: # Check if vacancy is placed 30+ days ago
+                    placed_num_days = 30
+                elif document['Placed'].split()[0] == "Vandaag": # Check if vacancy is placed today
+                    placed_num_days = 0
+                else: # Else a Int can be extracted. 
+                    placed_num_days = int(document['Placed'].split()[0])
+                
+                # Calculate days between Load_dts and Today()
+                days_between_load_dts_today = datetime.today() - document["Load_dts"]
+
+                # Update Documents
+                _id = ObjectId(document["_id"]) # set _id
+                datastore.update_one(
+                    {
+                        "_id":_id
+                    },
+                    {
+                        "$set":
+                        {
+                            "Vacancy_age": int(days_between_load_dts_today.days) + placed_num_days
+                        }
+                    }
+                )
+            
+        
         # Call inner functions
         # First update the datastore collection with all the Documents and LastSeen_dts
         update_datastore(self)
@@ -286,6 +318,8 @@ class VacancyAnalysis:
         mark_new(self)
         # Based on LastSeen_dts determine if Vacancy is Active/Inactive
         mark_status(self)
+        # Based on Placed and Load_dts calculate vacancy_age
+        add_vacancy_age(self)
     
 
 
@@ -293,7 +327,7 @@ class VacancyAnalysis:
 
 if __name__ == "__main__":
     data_engineer = VacancyAnalysis("Data Engineer", "Enschede", "mongodb://localhost:27017")
-    #data_engineer.extract()
+    data_engineer.extract()
     data_engineer.store()
 
 
