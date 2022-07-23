@@ -191,7 +191,10 @@ class VacancyAnalysis:
             """
             Clears the STG collection. 
             """
-            stg.delete_many()
+            try: # If STG is empty throws error. 
+                stg.delete_many({})
+            except Exception as e:
+                print(f"Error: {e}")
 
         def mark_new(self):
             """
@@ -257,17 +260,34 @@ class VacancyAnalysis:
                             }
                         }
                     )
-
+        def delete_duplicates_datastore(self):
+            """
+            Iterates over Datastore collection to delete duplicate values based on Vacancy_hash. 
+            """
+            vacancy_hash_list = [] # Empty list to append to
+            #Iterate over all documents in the datastore, while grabbing only _id and vacancy_hash
+            for document in datastore.find({}, {"_id":1, "Vacancy_hash":1}):
+                _id = ObjectId(document["_id"]) # set _id
+                if document["Vacancy_hash"] not in vacancy_hash_list:
+                    vacancy_hash_list.append(document["Vacancy_hash"])
+                else:
+                    datastore.delete_one(
+                        {"_id":_id}
+                    )
+        
         # Call inner functions
         # First update the datastore collection with all the Documents and LastSeen_dts
         update_datastore(self)
-        # Second clear the STG Collections. 
+        # Second make the vacancy hashes are unqiue. 
+        delete_duplicates_datastore(self)
+        # Third clear the STG Collections. 
         empty_stg(self)
         # Based on the Load_dts determine if Vacancy is new. 
         mark_new(self)
         # Based on LastSeen_dts determine if Vacancy is Active/Inactive
         mark_status(self)
     
+
 
 
 
