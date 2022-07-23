@@ -160,6 +160,10 @@ class VacancyAnalysis:
 
         # Functions to be used
         def update_datastore(self):
+            """
+            Updates Datastore by inserting document which do not exist in collection. 
+            While updating LastSeen_dts of the documents which are still present.
+            """
             datastore_vacancy_hashes = [] # Empty list to add all existing Vacancy hashes
             for document in datastore.find(): datastore_vacancy_hashes.append(document["Vacancy_hash"]) # Append Vacancy Hash to list
 
@@ -184,7 +188,36 @@ class VacancyAnalysis:
                     datastore.insert_one(document)
         
         def mark_new(self):
-            pass
+            """
+            If Vacancy has Load_dts of Today then marks this as new. 
+            """
+            # Iterate over all documents in the datastore, while grabbing only _id and Load_dts
+            for document in datastore.find({}, {"_id": 1, "Load_dts":1}): 
+                if document['Load_dts'].strftime("%Y-%m-%d") == datetime.today().strftime("%Y-%m-%d"): # Check if the days are the same
+                    _id = ObjectId(document["_id"])
+                    datastore.update_one(
+                        {
+                            "_id":_id
+                        },
+                        {"$set":
+                            {
+                                "New": True # If days are the same, set New to True
+                            }
+                        }
+                    )
+                else:
+                    _id = ObjectId(document["_id"])
+                    datastore.update_one(
+                            {
+                                "_id":_id
+                            },
+                            {"$set":
+                                {
+                                    "New": False # If days are not the same, set New to False
+                                }
+                            }
+                        )
+            
 
         # Call inner functions
         #update_datastore(self)
