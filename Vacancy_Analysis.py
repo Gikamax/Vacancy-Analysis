@@ -186,7 +186,13 @@ class VacancyAnalysis:
                 else:
                     # Else insert document
                     datastore.insert_one(document)
-        
+
+        def empty_stg(self):
+            """
+            Clears the STG collection. 
+            """
+            stg.delete_many()
+
         def mark_new(self):
             """
             If Vacancy has Load_dts of Today then marks this as new. 
@@ -253,10 +259,15 @@ class VacancyAnalysis:
                     )
 
         # Call inner functions
-        #update_datastore(self)
+        # First update the datastore collection with all the Documents and LastSeen_dts
+        update_datastore(self)
+        # Second clear the STG Collections. 
+        empty_stg(self)
+        # Based on the Load_dts determine if Vacancy is new. 
         mark_new(self)
+        # Based on LastSeen_dts determine if Vacancy is Active/Inactive
         mark_status(self)
-
+    
 
 
 
