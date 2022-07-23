@@ -1,4 +1,6 @@
 # Script to scrape Indeed and store in MongoDB
+from pydoc import doc
+from xmlrpc.client import DateTime
 from pymongo import MongoClient # For writing to MongoDB
 from bs4 import BeautifulSoup
 from requests import get
@@ -13,6 +15,7 @@ class VacancyAnalysis:
         self.jobname = jobname
         self.location = location
         self.MongoDB_connectionstring = MongoDB_connectionstring
+        self.database_name = self.jobname.replace(" ", "_") # for functions with spaces
     
     def extract(self):
         """
@@ -72,11 +75,10 @@ class VacancyAnalysis:
             """
             Grabs all vacancy details and writes them to MongoDB
             """
-            database_name = self.jobname.replace(" ", "_") # for functions with spaces
             # Set up MongoDB Connection
             client = MongoClient(self.MongoDB_connectionstring) 
             # Connect to right Database
-            db = client[database_name]
+            db = client[self.database_name]
             # Connect to STG collection
             collection = db.stg
 
@@ -142,11 +144,59 @@ class VacancyAnalysis:
         self.list_vacancies = get_all_vacancies(self, self.job_url)
         write_vacancy_details(self, self.list_vacancies)
     
+    def store(self):
+        """
+        PLACEHOLDER
+        """
+        from bson.objectid import ObjectId
+        # Make MongoDB connection
+        client = MongoClient(self.MongoDB_connectionstring)
+        # Connect to right Database
+        db = client[self.database_name]
+        # Connect to DataStore collection (creates if not exists)
+        datastore = db.DataStore
+        # Connect to STG collection 
+        stg = db.stg
+
+        # Functions to be used
+        def update_datastore(self):
+            datastore_vacancy_hashes = [] # Empty list to add all existing Vacancy hashes
+            for document in datastore.find(): datastore_vacancy_hashes.append(document["Vacancy_hash"]) # Append Vacancy Hash to list
+
+            # Iterate over all documents in STG collection
+            for document in stg.find():
+                # Check if documents vacancy_hash is in the collection datastore
+                if document["Vacancy_hash"] in datastore_vacancy_hashes:
+                    # if vacancy_hash in datastore, then update LastSeen_dts to current
+                    _id = ObjectId(document["_id"])
+                    datastore.update_one(
+                        {
+                            "_id":_id
+                        }, 
+                        {"$set": 
+                            {
+                                "LastSeen_dts": datetime.today()
+                            }
+                        }
+                        )
+                else:
+                    # Else insert document
+                    datastore.insert_one(document)
         
+        def mark_new(self):
+            pass
+
+        # Call inner functions
+        #update_datastore(self)
+        mark_new(self)
+
+
+
 
 if __name__ == "__main__":
     data_engineer = VacancyAnalysis("Data Engineer", "Enschede", "mongodb://localhost:27017")
-    data_engineer.extract()
+    #data_engineer.extract()
+    data_engineer.store()
 
 
 
