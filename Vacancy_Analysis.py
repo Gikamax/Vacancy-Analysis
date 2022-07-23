@@ -54,12 +54,15 @@ class VacancyAnalysis:
                 
                 #Finding next webpage
                 parent_navigation = soup.find('ul', {"class": "pagination-list"}) # Find Navigation panel on bottom of the page
-                for element in parent_navigation: # Loop through all possible values
-                    if element.text != "\n" and element.text != "" and int(element.text) != counter: # Text can be \n, " " and equal to current page, these must be avoided
-                        page_dict[int(element.text)] = "https://nl.indeed.com" + element.find('a', href = True)['href'] # Add to Dic Pagenumber with correct Url 
-                counter += 1 # Set counter +1
-                try: # Try setting new url to new page
-                    url = page_dict[counter] 
+                try:
+                    for element in parent_navigation: # Loop through all possible values
+                        if element.text != "\n" and element.text != "" and int(element.text) != counter: # Text can be \n, " " and equal to current page, these must be avoided
+                            page_dict[int(element.text)] = "https://nl.indeed.com" + element.find('a', href = True)['href'] # Add to Dic Pagenumber with correct Url 
+                    counter += 1 # Set counter +1
+                    try: # Try setting new url to new page
+                        url = page_dict[counter] 
+                    except:
+                        pass
                 except Exception as e: # If fails then print exception
                     next_page_exits = False
                 
