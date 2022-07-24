@@ -47,6 +47,11 @@ class VacancyAnalysis:
                 # Getting Vacancies on current page
                 soup = BeautifulSoup( get(url).content, "html.parser") # Reading Webpage into BeatifulSoup
                 jobcards = soup.find('div', id = 'mosaic-provider-jobcards') # Locating part of webpage with only vacancies. 
+
+                # Check if Jobcards is not NoneType
+                if isinstance(jobcards, NoneType):
+                    print(f"Failed to retrieve list of Vacancies for {self.jobname} and {self.location} on iteration {counter}")
+                    break # Break out of loop
                 jobcards_headers = jobcards.find_all('h2') # find all Jobheaders (Titles)
                 # Iterate over every Title to grab the url. 
                 for header in jobcards_headers:
@@ -93,7 +98,10 @@ class VacancyAnalysis:
                 soup = BeautifulSoup( get(vacancy).content, "html.parser")
 
                 # Title
-                job_title = soup.find('h1').text
+                try:
+                    job_title = soup.find('h1').text
+                except:
+                    break # Break out of loop and do not process vacancy
 
                 # Organization
                 organization = soup.find('a', href=True, target="_blank").text
@@ -140,7 +148,7 @@ class VacancyAnalysis:
                     "URL": vacancy
                 }
                 collection.insert_one(vacancy_document) # insert in the STG collection
-                print(f"Successfully inserted {job_title}")
+                # print(f"Successfully inserted {job_title}") # Convert to logging
         
         # Execute inner functions
         self.job_url = create_url(self)
@@ -432,12 +440,12 @@ class VacancyAnalysis:
             # Find document for insert/replace
             if isinstance(analysis.find_one({"Title":"summary statistics"}), NoneType):
                 # Document does not exist
-                print("Document does not exist")
+                #print("Document does not exist")
                 # Insert statement
                 analysis.insert_one(document)
             else:
                 # Document does exist 
-                print("Document does exist")
+                #print("Document does exist")
                 # Replace statement
                 analysis.replace_one(
                     {
@@ -477,14 +485,14 @@ class VacancyAnalysis:
             # Find document for insert/replace
             if isinstance(analysis.find_one({"Title":"location statistics"}), NoneType):
                 # Document does not exist
-                print("Document does not exist")
+                #print("Document does not exist")
                 #Create documentSet up connectionistics"}
                 for item in location_count: document[item['_id']] = item["count"] # For loop to add items to document
                 # Insert statement
                 analysis.insert_one(document)
             else:
                 # Document does exist 
-                print("Document does exist")
+                #print("Document does exist")
                 # Iterate over all elements
                 for item in location_count:
                     # update statement
@@ -546,12 +554,12 @@ class VacancyAnalysis:
              # Find document for insert/replace
             if isinstance(analysis.find_one({"Title":"skills statistics"}), NoneType):
                 # Document does not exist
-                print("Document does not exist")
+                #print("Document does not exist")
                 # Insert statement
                 analysis.insert_one(document)
             else:
                 # Document does exist 
-                print("Document does exist")
+                #print("Document does exist")
                 # Replace statement
                 analysis.replace_one(
                     {
