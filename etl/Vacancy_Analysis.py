@@ -560,16 +560,10 @@ class VacancyAnalysis:
                     document
                 )
 
-        #summary_statistics(self)
-        #location_statistics(self)
+        summary_statistics(self)
+        location_statistics(self)
         skills_statistics(self)
 
-
-if __name__ == "__main__":
-    data_engineer = VacancyAnalysis("Data Engineer", "Enschede", "mongodb://localhost:27017")
-    # data_engineer.extract()
-    # data_engineer.store()
-    data_engineer.analyze()
 
 
 
