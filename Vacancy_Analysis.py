@@ -1,7 +1,9 @@
 # Script to scrape Indeed and store in MongoDB
 from types import NoneType
+from unicodedata import name
 from pymongo import MongoClient # For writing to MongoDB
 from bs4 import BeautifulSoup
+import pymongo
 from requests import get
 from random import randint
 from time import sleep
@@ -133,10 +135,11 @@ class VacancyAnalysis:
                     "Load_dts": datetime.today(),
                     "LastSeen_dts": datetime.today(),
                     "Vacancy_hash": vacancy_hash,
-                    "Vacancy_text": vacancy_text
+                    "Vacancy_text": vacancy_text,
+                    "URL": vacancy
                 }
                 collection.insert_one(vacancy_document) # insert in the STG collection
-                print(f"Successfly instered {job_title}")
+                print(f"Successfully inserted {job_title}")
         
         # Execute inner functions
         self.job_url = create_url(self)
@@ -474,8 +477,7 @@ class VacancyAnalysis:
             if isinstance(analysis.find_one({"Title":"location statistics"}), NoneType):
                 # Document does not exist
                 print("Document does not exist")
-                #Create document
-                document = {"Title":"location statistics"}
+                #Create documentSet up connectionistics"}
                 for item in location_count: document[item['_id']] = item["count"] # For loop to add items to document
                 # Insert statement
                 analysis.insert_one(document)
@@ -497,14 +499,48 @@ class VacancyAnalysis:
                         }
                     )
         
-        summary_statistics(self)
-        location_statistics(self)
+        def skills_statistics(self):
+            """
+            Retrieves the count of certain skills in all vacancies.
+            """
+            # Create Document
+            document = {"Title":"skills statistics"}
+            # Retrieve the cloud environment
+            # The function of Product Owner is different then Data Analist or Data Engineer
+            if "data" in self.jobname.lower(): # Check if functions with data 
+                # Retrieve the right Cloud
+                # Google
+                _google_count = 0
+                _google = datastore.find({"Vacancy_text": {"$regex": "google", "$options": 'i'}}) # Amount of Vacancies with google
+                for vacancy in _google: _google_count += 1
+
+                # AWS
+                _aws_count = 0
+                _aws = datastore.find({"Vacancy_text": {"$regex": "aws", "$options": 'i'}}) # Amount of Vacancies with aws
+                for vacancy in _aws: _aws_count += 1
+
+                # Azure
+                _azure_count = 0
+                _azure = datastore.find({"Vacancy_text": {"$regex": "azure", "$options": 'i'}}) # Amount of Vacancies with azure
+                for vacancy in _azure: _azure_count += 1
+
+                # Add to Document
+                document["Google Count"] = _google_count
+                document["AWS Count"] = _aws_count
+                document["Azure Count"] = _azure_count
+                
+            # Requirements
+            
+
+        #summary_statistics(self)
+        #location_statistics(self)
+        skills_statistics(self)
 
 
 if __name__ == "__main__":
     data_engineer = VacancyAnalysis("Data Engineer", "Enschede", "mongodb://localhost:27017")
-    #data_engineer.extract()
-    #data_engineer.store()
+    # data_engineer.extract()
+    # data_engineer.store()
     data_engineer.analyze()
 
 
