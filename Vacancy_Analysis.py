@@ -1,6 +1,5 @@
 # Script to scrape Indeed and store in MongoDB
 from types import NoneType
-from unicodedata import name
 from pymongo import MongoClient # For writing to MongoDB
 from bs4 import BeautifulSoup
 import pymongo
@@ -9,6 +8,8 @@ from random import randint
 from time import sleep
 from datetime import datetime
 from hashlib import md5
+
+import html
 
 class VacancyAnalysis:
 
@@ -507,7 +508,7 @@ class VacancyAnalysis:
             document = {"Title":"skills statistics"}
             # Retrieve the cloud environment
             # The function of Product Owner is different then Data Analist or Data Engineer
-            if "data" in self.jobname.lower(): # Check if functions with data 
+            if self.jobname.lower() != "product owner":
                 # Retrieve the right Cloud
                 # Google
                 _google_count = 0
@@ -528,9 +529,36 @@ class VacancyAnalysis:
                 document["Google Count"] = _google_count
                 document["AWS Count"] = _aws_count
                 document["Azure Count"] = _azure_count
-                
-            # Requirements
+
+                # Retrieve Python, SQL skills
+                _sql_count = 0
+                _sql = datastore.find({"Vacancy_text": {"$regex": "sql", "$options": 'i'}}) # Amount of Vacancies with sql
+                for vacancy in _sql: _sql_count += 1
+
+                _python_count = 0
+                _python = datastore.find({"Vacancy_text": {"$regex": "python", "$options": 'i'}}) # Amount of Vacancies with python
+                for vacancy in _python: _python_count += 1
+
+                # Add to Document
+                document["SQL Count"] = _sql_count
+                document["Python Count"] = _python_count
             
+             # Find document for insert/replace
+            if isinstance(analysis.find_one({"Title":"skills statistics"}), NoneType):
+                # Document does not exist
+                print("Document does not exist")
+                # Insert statement
+                analysis.insert_one(document)
+            else:
+                # Document does exist 
+                print("Document does exist")
+                # Replace statement
+                analysis.replace_one(
+                    {
+                        "Title": "skills statistics"
+                    },
+                    document
+                )
 
         #summary_statistics(self)
         #location_statistics(self)
