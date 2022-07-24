@@ -1,6 +1,5 @@
 # Script to scrape Indeed and store in MongoDB
-from pydoc import doc
-from xmlrpc.client import DateTime
+from types import NoneType
 from pymongo import MongoClient # For writing to MongoDB
 from bs4 import BeautifulSoup
 from requests import get
@@ -310,7 +309,7 @@ class VacancyAnalysis:
         # Call inner functions
         # First update the datastore collection with all the Documents and LastSeen_dts
         update_datastore(self)
-        # Second make the vacancy hashes are unqiue. 
+        # Second make the vacancy hashes are unique. 
         delete_duplicates_datastore(self)
         # Third clear the STG Collections. 
         empty_stg(self)
@@ -321,14 +320,192 @@ class VacancyAnalysis:
         # Based on Placed and Load_dts calculate vacancy_age
         add_vacancy_age(self)
     
+    def analyze(self):
+        """
+        PLACEHOLDER
+        """
+        # Set up Connection
+        from bson.objectid import ObjectId
+        # Make MongoDB connection
+        client = MongoClient(self.MongoDB_connectionstring)
+        # Connect to right Database
+        db = client[self.database_name]
+        # Connect to DataStore collection (creates if not exists)
+        datastore = db.DataStore
+        # Connect to Analysis collection (creates if not exists)
+        analysis = db.Analysis
 
+        # Inner functions
+        def summary_statistics(self):
+            """
+            Creates or replace the document called Summary Statistics of the collection db.Analysis
+            """
+            # Create document
+            document = {"Title":"summary statistics"}
 
+            # Measures for in the document
+            # Vacancy_count
+            vacancy_count = datastore.count_documents(filter={}) # Retrieve Count of documents
+            document["Vacancy Count"] = vacancy_count # set to document
+
+            # Active Count
+            count_active = datastore.count_documents({"Status":"Active"}) # Retrieve count of all active documents
+            document["Active Count"] = count_active
+
+            # New Count
+            count_new = datastore.count_documents({"New":True}) # Retrieve count of all new documents
+            document["New Count"] = count_new
+
+            # Average Vacancy Age
+            avg_vacancy_age = datastore.aggregate([ # Retrieve the Average Vacancy Age
+                {
+                    "$match": {"Status": "Active"}
+                },
+                {
+                    "$group":
+                    {
+                        "_id": "null",
+                        "Average_Vacancy_Age": {"$avg": "$Vacancy_age" }
+                    }
+                },
+                {
+                    "$project":
+                    {
+                        "_id": 0,
+                        "Average_Vacancy_Age": 1
+                    }
+                }
+            ]
+            )
+            for item in avg_vacancy_age: document["Average Vacancy Age"] = round(item['Average_Vacancy_Age']) # Assign with for loop
+
+            # Min Vacancy Age
+            min_vacancy_age = datastore.aggregate([ # Retrieve the Min Vacancy Age
+                {
+                    "$match": {"Status": "Active"}
+                },
+                {
+                    "$group":
+                    {
+                        "_id": "null",
+                        "Min_Vacancy_Age": {"$min": "$Vacancy_age" }
+                    }
+                },
+                {
+                    "$project":
+                    {
+                        "_id": 0,
+                        "Min_Vacancy_Age": 1
+                    }
+                }
+            ]
+            )
+            for item in min_vacancy_age: document["Min Vacancy Age"] = round(item['Min_Vacancy_Age']) # Assign with for loop
+
+            # Max Vacancy Age
+            max_vacancy_age = datastore.aggregate([ # Retrieve the Min Vacancy Age
+                {
+                    "$match": {"Status": "Active"}
+                },
+                {
+                    "$group":
+                    {
+                        "_id": "null",
+                        "Max_Vacancy_Age": {"$max": "$Vacancy_age" }
+                    }
+                },
+                {
+                    "$project":
+                    {
+                        "_id": 0,
+                        "Max_Vacancy_Age": 1
+                    }
+                }
+            ]
+            )
+            for item in max_vacancy_age: document["Max_Vacancy_Age"] = round(item['Max_Vacancy_Age']) # Assign with for loop
+
+            # Find document for insert/replace
+            if isinstance(analysis.find_one({"Title":"summary statistics"}), NoneType):
+                # Document does not exist
+                print("Document does not exist")
+                # Insert statement
+                analysis.insert_one(document)
+            else:
+                # Document does exist 
+                print("Document does exist")
+                # Replace statement
+                analysis.replace_one(
+                    {
+                        "Title": "summary statistics"
+                    },
+                    document
+                )
+        
+        def location_statistics(self):
+            """
+            Retrieves all Vacancies per Location.
+            """
+            # Create document
+            document = {"Title":"location statistics"}
+
+            # Measure
+            location_count = datastore.aggregate([
+                {
+                    "$match": {"Status": "Active"}
+                },
+                {
+                    "$group":
+                    {
+                        "_id": "$Location",
+                        "count" : {"$sum": 1}
+                    }
+                },
+                {
+                   "$project":
+                    {
+                        "_id": 1,
+                        "count": 1
+                    } 
+                }
+            ])
+
+            # Find document for insert/replace
+            if isinstance(analysis.find_one({"Title":"location statistics"}), NoneType):
+                # Document does not exist
+                print("Document does not exist")
+                #Create document
+                document = {"Title":"location statistics"}
+                for item in location_count: document[item['_id']] = item["count"] # For loop to add items to document
+                # Insert statement
+                analysis.insert_one(document)
+            else:
+                # Document does exist 
+                print("Document does exist")
+                # Iterate over all elements
+                for item in location_count:
+                    # update statement
+                    analysis.update_one(
+                        {
+                            "Title": "location statistics"
+                        },
+                        {
+                            "$set":
+                            {
+                                item['_id'] : item["count"]
+                            }
+                        }
+                    )
+        
+        summary_statistics(self)
+        location_statistics(self)
 
 
 if __name__ == "__main__":
     data_engineer = VacancyAnalysis("Data Engineer", "Enschede", "mongodb://localhost:27017")
-    data_engineer.extract()
-    data_engineer.store()
+    #data_engineer.extract()
+    #data_engineer.store()
+    data_engineer.analyze()
 
 
 
