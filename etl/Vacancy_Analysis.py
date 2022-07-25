@@ -115,7 +115,7 @@ class VacancyAnalysis:
                 # Placed
                 parent_placed = soup.find('div', {"class": "jobsearch-JobMetadataFooter"})
                 for element in parent_placed:
-                    if element.text.__contains__("geleden"):
+                    if element.text.__contains__("geleden") or element.text.__contains__("geplaatst"):
                         placed = element.text
                 
                 # Original Vacancy Url
@@ -135,18 +135,22 @@ class VacancyAnalysis:
                 vacancy_text = vacancy_text_raw.text
 
                 #Construct JSON output
-                vacancy_document = {
-                    "Job_title": job_title, 
-                    "Organization": organization,
-                    "Location": location,
-                    "Placed": placed,
-                    "Original Vacancy Url": orginal_vacancy_url,
-                    "Load_dts": datetime.today(),
-                    "LastSeen_dts": datetime.today(),
-                    "Vacancy_hash": vacancy_hash,
-                    "Vacancy_text": vacancy_text,
-                    "URL": vacancy
-                }
+                try:
+                    # Try block to prevent issues with UnboundLocalError
+                    vacancy_document = {
+                        "Job_title": job_title, 
+                        "Organization": organization,
+                        "Location": location,
+                        "Placed": placed,
+                        "Original Vacancy Url": orginal_vacancy_url,
+                        "Load_dts": datetime.today(),
+                        "LastSeen_dts": datetime.today(),
+                        "Vacancy_hash": vacancy_hash,
+                        "Vacancy_text": vacancy_text,
+                        "URL": vacancy
+                    }
+                except UnboundLocalError:
+                    break # Find out what goes wrong to fix it (add to log)
                 collection.insert_one(vacancy_document) # insert in the STG collection
                 # print(f"Successfully inserted {job_title}") # Convert to logging
         
