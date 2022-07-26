@@ -9,7 +9,22 @@ services:
       -MONGO_INITDB_ROOT_PASSWORD: password
     ports:
     - 27017:27017
+    volumes:
+      - ./db:/data/db
+    networks:
+      - database-api
+  
+  extract:
+    build: ./etl
+    networks:
+      - database-api
+    depends_on:
+      - database
+
 
 volumes:
-  mongodb:
+  mongodata:
+
+networks:
+  database-api:
 
