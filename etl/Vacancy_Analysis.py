@@ -320,7 +320,32 @@ class VacancyAnalysis:
                         }
                     }
                 )
-            
+
+        def convert_location_to_placename(self):
+            """
+            Function to convert location of vacancy to valid Dutch place. 
+            """
+            # iterate over all documents in the datastore
+            for document in datastore.find({"Location": {"$regex": "in"}}, {"_id": 1, "Location": 1}): # Iterate over all documents and find with Location in
+                # For Locations with in mostly last word is the placename, only exception is "Hengelo OV"
+                if document['Location'].split(" ")[-1] == "OV": # In case Hengelo OV the last word is OV
+                    new_location_string = document['Location'].split(" ")[-2]
+                else: # For other Location string last place is correct
+                    new_location_string =  document['Location'].split(" ")[-1]# Split the location on space and grab last word (placename)
+                
+                # Update document
+                _id = ObjectId(document["_id"]) # Set _ID
+                datastore.update_one(
+                    {
+                        "_id":_id
+                    },
+                    {
+                        "$set":
+                        {
+                            "Location": new_location_string
+                        }
+                    }
+                )
         
         # Call inner functions
         # First update the datastore collection with all the Documents and LastSeen_dts
@@ -335,6 +360,8 @@ class VacancyAnalysis:
         mark_status(self)
         # Based on Placed and Load_dts calculate vacancy_age
         add_vacancy_age(self)
+        # Convert Location to normal place names
+        convert_location_to_placename(self)
     
     def analyze(self):
         """
@@ -577,5 +604,7 @@ class VacancyAnalysis:
         skills_statistics(self)
 
 
-
+# if __name__ == "__main__":
+#     vacancy = VacancyAnalysis("Data Engineer", "Enschede", "mongodb://localhost:27017")
+#     vacancy.store()
 
