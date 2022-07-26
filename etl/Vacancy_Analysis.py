@@ -30,7 +30,7 @@ class VacancyAnalysis:
 
     def extract(self):
         """
-        PLACEHOLDER
+        Extraction of all Vacancies found on Indeed. 
         """
         # Define inner functions to be used
 
@@ -178,7 +178,7 @@ class VacancyAnalysis:
     
     def store(self):
         """
-        PLACEHOLDER
+        Stores Vacancies based on DataVault2. 
         """
         from bson.objectid import ObjectId
         # Make MongoDB connection
@@ -398,7 +398,7 @@ class VacancyAnalysis:
     
     def analyze(self):
         """
-        PLACEHOLDER
+        Create Analyze Documents
         """
         # Set up Connection
         from bson.objectid import ObjectId
