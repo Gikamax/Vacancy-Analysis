@@ -179,15 +179,15 @@ class VacancyAnalysis:
             Updates Datastore by inserting document which do not exist in collection. 
             While updating LastSeen_dts of the documents which are still present.
             """
-            datastore_vacancy_hashes = [] # Empty list to add all existing Vacancy hashes
-            for document in datastore.find(): datastore_vacancy_hashes.append(document["Vacancy_hash"]) # Append Vacancy Hash to list
-
+            datastore_vacancy_hashes = {} # Empty dict to add all existing Vacancy hashes
+            for document in datastore.find(): datastore_vacancy_hashes[document["Vacancy_hash"]] = document["_id"] # Dict with Hash as Key and _ID as value
             # Iterate over all documents in STG collection
             for document in stg.find():
+                #print(f"Updating {document['Job_title']} for organization {document['Organization']} \nVacancy_hash: {document['Vacancy_hash']}" )
                 # Check if documents vacancy_hash is in the collection datastore
-                if document["Vacancy_hash"] in datastore_vacancy_hashes:
+                if document["Vacancy_hash"] in datastore_vacancy_hashes.keys():
                     # if vacancy_hash in datastore, then update LastSeen_dts to current
-                    _id = ObjectId(document["_id"])
+                    _id = ObjectId(datastore_vacancy_hashes[document['Vacancy_hash']]) # Returning the _ID
                     datastore.update_one(
                         {
                             "_id":_id
