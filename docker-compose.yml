@@ -22,8 +22,6 @@ services:
       - database
 
 
-volumes:
-  mongodata:
 
 networks:
   database-api:
