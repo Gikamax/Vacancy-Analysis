@@ -27,6 +27,7 @@ async def on_ready():
     print(f"{bot.user.name} is ready")
 
 # Respond on Message
+# New command
 @bot.command(name="new")
 async def _new(ctx):
     """
