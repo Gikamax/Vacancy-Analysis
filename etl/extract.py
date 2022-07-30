@@ -20,9 +20,9 @@ def extract_job():
             print(function, location)
 
 
+extract_job()
+# schedule.every().day.at("06:00").do(extract_job)
 
-schedule.every().day.at("06:00").do(extract_job)
-
-while True:
-    schedule.run_pending()
-    time.sleep(10800)
+# while True:
+#     schedule.run_pending()
+#     time.sleep(10800)

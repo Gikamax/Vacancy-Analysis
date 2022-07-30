@@ -1,11 +1,14 @@
 # Discord Bot
 #import discord
+from io import BytesIO
 from discord.ext import commands, tasks
+import discord
+from PIL import Image
 # Utilities
 from dotenv import load_dotenv
 import os
 # Custom made functions
-from analysis import get_new
+from analysis import get_new, summary_statistics, location_statistics, skills_statistics
 
 # Load variables
 load_dotenv() # Load in the .env file
@@ -63,6 +66,116 @@ async def _new(ctx):
     else:
         pass
 
+# Summary
+@bot.command(name="summary")
+async def _summary(ctx):
+    """
+    Function to retrieve Summary Statics for Function
+    """
+    if ctx.channel.id not in [data_engineer_channel, data_analist_channel, business_intelligence_channel, product_owner_channel]: 
+        # Check if in registerd channels
+        await ctx.send(f"Command $summary works only in Vacancy Channels")
+    
+    elif ctx.channel.id == data_engineer_channel:
+        # Create Chart
+        image_path = summary_statistics("Data_Engineer")
+        
+    elif ctx.channel.id == data_analist_channel:
+        # Create Chart
+        image_path = summary_statistics("Data_Analist")
+
+    elif ctx.channel.id == business_intelligence_channel:
+        # Create Chart
+        image_path = summary_statistics("Business_Intelligence")
+
+    elif ctx.channel.id == product_owner_channel:
+        # Create Chart
+        image_path = summary_statistics("Product_Owner")
+
+    else:
+        pass
+
+    # Open Image
+    image = Image.open(image_path)
+    # Send Image
+    with BytesIO() as image_binary:
+        image.save(image_binary, "PNG")
+        image_binary.seek(0)
+        await ctx.send(file=discord.File(fp=image_binary, filename="Summary_stats.png"))
+
+# Location
+@bot.command(name="location")
+async def _location(ctx):
+    """
+    Function to send Location Summary
+    """
+    if ctx.channel.id not in [data_engineer_channel, data_analist_channel, business_intelligence_channel, product_owner_channel]: 
+        # Check if in registered channels
+        await ctx.send(f"Command $location works only in Vacancy Channels")
+        return 0
+    
+    elif ctx.channel.id == data_engineer_channel:
+        # Create Chart
+        image_path = location_statistics("Data_Engineer")
+        
+    elif ctx.channel.id == data_analist_channel:
+        # Create Chart
+        image_path = location_statistics("Data_Analist")
+
+    elif ctx.channel.id == business_intelligence_channel:
+        # Create Chart
+        image_path = location_statistics("Business_Intelligence")
+
+    elif ctx.channel.id == product_owner_channel:
+        # Create Chart
+        image_path = location_statistics("Product_Owner")
+    else:
+        pass
+
+    # Open Image
+    image = Image.open(image_path)
+    # Send Image
+    with BytesIO() as image_binary:
+        image.save(image_binary, "PNG")
+        image_binary.seek(0)
+        await ctx.send(file=discord.File(fp=image_binary, filename="Location_stats.png"))
+
+# skills
+@bot.command(name="skills")
+async def _skills(ctx):
+    """
+    Function to send Location Summary
+    """
+    if ctx.channel.id not in [data_engineer_channel, data_analist_channel, business_intelligence_channel, product_owner_channel]: 
+        # Check if in registered channels
+        await ctx.send(f"Command $location works only in Vacancy Channels")
+        return 0
+    
+    elif ctx.channel.id == data_engineer_channel:
+        # Create Chart
+        image_path = skills_statistics("Data_Engineer")
+        
+    elif ctx.channel.id == data_analist_channel:
+        # Create Chart
+        image_path = skills_statistics("Data_Analist")
+
+    elif ctx.channel.id == business_intelligence_channel:
+        # Create Chart
+        image_path = skills_statistics("Business_Intelligence")
+
+    elif ctx.channel.id == product_owner_channel:
+        # Create Chart
+        image_path = skills_statistics("Product_Owner")
+    else:
+        pass
+
+    # Open Image
+    image = Image.open(image_path)
+    # Send Image
+    with BytesIO() as image_binary:
+        image.save(image_binary, "PNG")
+        image_binary.seek(0)
+        await ctx.send(file=discord.File(fp=image_binary, filename="skills_stats.png"))
 
 # Respond on Message
 @bot.command(name="welcome")
