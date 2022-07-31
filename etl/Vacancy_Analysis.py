@@ -54,7 +54,7 @@ class VacancyAnalysis:
             while next_page_exits: # To go over all webpages
                 logger.info(f"Iteration: {counter}| URL: {url}")
 
-                #sleep(randint(0,10)) # Add random waittime to avoid bot detection 
+                sleep(randint(0,10)) # Add random waittime to avoid bot detection 
 
                 # Getting Vacancies on current page
                 soup = BeautifulSoup( get(url).content, "html.parser") # Reading Webpage into BeatifulSoup
@@ -68,7 +68,7 @@ class VacancyAnalysis:
                 # Iterate over every Title to grab the url. 
                 for header in jobcards_headers:
                     
-                    #sleep(randint(0,10)) # Add random waittime to avoid bot detection
+                    sleep(randint(0,10)) # Add random waittime to avoid bot detection
 
                     if "data" in header.text.lower(): # Filter Vacancies that have Data in it. 
                         url = "https://nl.indeed.com" + header.find('a')['href'] # Add base url to href output. 
@@ -105,7 +105,7 @@ class VacancyAnalysis:
             # Loop over Vacancies
             for vacancy in vacancies_urls:
                 logger.info(f"Starting {vacancy}")
-                #sleep(randint(0,10)) # Add random waittime to avoid bot detection
+                sleep(randint(0,10)) # Add random waittime to avoid bot detection
 
                 # Read in Vacancy to Soup    
                 soup = BeautifulSoup( get(vacancy).content, "html.parser")
@@ -627,8 +627,9 @@ class VacancyAnalysis:
                     },
                     document
                 )
+            
 
         summary_statistics(self)
         location_statistics(self)
         skills_statistics(self)
-
+        logger.info(f"Finished with Jobname: '{self.jobname}'| Location: '{self.location}'| Connectionstring: '{self.MongoDB_connectionstring}'")

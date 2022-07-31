@@ -7,14 +7,16 @@ import os
 # Set variables
 figure_path = os.path.dirname(__file__) + "/viz/"
 
-MongoDB_connectionstring = "mongodb://MongoDB_Container"
+# connectionstring for local and Docker
+connection_string_local = "mongodb://localhost:27017"
+connection_string_docker = "mongodb://MongoDB_Container"
 
 def get_new(database:str) -> list:
     """
     Functions that get all new vacancies. 
     Return list with dicts
     """
-    client = MongoClient(MongoDB_connectionstring)
+    client = MongoClient(connection_string_docker)
     db = client[database]
     collection = db.DataStore
 
@@ -30,7 +32,7 @@ def summary_statistics(database:str):
     Function to retrieve and visualize summary statistics. 
     """
     # Set up MongoDB connection. 
-    client = MongoClient(MongoDB_connectionstring)
+    client = MongoClient(connection_string_docker)
     db = client[database]
     collection = db.Analysis
     # Retrieve Summary Statistics and retrieve only fields that needed. 
@@ -66,7 +68,7 @@ def location_statistics(database:str):
     Function to retrieve and visualize Location statistics
     """
     # Set up MongoDB connection. 
-    client = MongoClient(MongoDB_connectionstring)
+    client = MongoClient(connection_string_docker)
     db = client[database]
     collection = db.Analysis
     # Retrieve Summary Statistics and retrieve only fields that needed. 
@@ -97,7 +99,7 @@ def skills_statistics(database:str):
     Function to retrieve and visualize Skills statistics
     """
     # Set up MongoDB connection. 
-    client = MongoClient(MongoDB_connectionstring)
+    client = MongoClient(connection_string_docker)
     db = client[database]
     collection = db.Analysis
     # Retrieve Summary Statistics and retrieve only fields that needed. 
