@@ -632,8 +632,3 @@ class VacancyAnalysis:
         location_statistics(self)
         skills_statistics(self)
 
-
-if __name__ == "__main__":
-    vacancy = VacancyAnalysis("Data Engineer", "Enschede", "mongodb://localhost:27017")
-    vacancy.store()
-

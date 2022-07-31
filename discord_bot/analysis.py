@@ -7,7 +7,7 @@ import os
 # Set variables
 figure_path = os.path.dirname(__file__) + "/viz/"
 
-MongoDB_connectionstring = "mongodb://localhost:27017"
+MongoDB_connectionstring = "mongodb://MongoDB_Container"
 
 def get_new(database:str) -> list:
     """
@@ -102,7 +102,7 @@ def skills_statistics(database:str):
     collection = db.Analysis
     # Retrieve Summary Statistics and retrieve only fields that needed. 
     document = collection.find_one({"Title":"skills statistics"}, {"_id": 0, "Title" :0})
-
+    
     # Variable to determine max
     _max = 0
     # Create plot
@@ -126,6 +126,5 @@ def skills_statistics(database:str):
     # Set Yticks
     y_ticks = [num for num in range(0,_max + 5,5)]
     ax.set_yticks(y_ticks)
-
     plt.savefig(figure_path + f"skills_{database}.png")
     return figure_path + f"skills_{database}.png" # Retun location of image

@@ -4,9 +4,7 @@ services:
   database:
     image: mongo:4.4.15
     container_name: 'MongoDB_Container'
-    environment:
-      -MONGO_INITDB_ROOT_USERNAME: root
-      -MONGO_INITDB_ROOT_PASSWORD: password
+    command: --noauth
     ports:
     - 27017:27017
     volumes:
@@ -14,13 +12,13 @@ services:
     networks:
       - database-api
   
-  # extract:
-  #   build: ./etl
-  #   container_name: 'Extract'
-  #   networks:
-  #     - database-api
-  #   depends_on:
-  #     - database
+  extract:
+    build: ./etl
+    container_name: 'Extract'
+    networks:
+      - database-api
+    depends_on:
+      - database
     
   discord:
     build: ./discord_bot

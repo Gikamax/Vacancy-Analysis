@@ -10,7 +10,7 @@ locations_list = ["Enschede", "Almelo", "Deventer", "Zwolle"]
 if __name__ == "__main__":
     for function in functions_list:
         for location in locations_list:
-            vacancy = VacancyAnalysis(jobname=function, location=location, MongoDB_connectionstring="mongodb://localhost:27017") # Create instance of Vacancyanalis
+            vacancy = VacancyAnalysis(jobname=function, location=location, MongoDB_connectionstring="mongodb://MongoDB_Container") # Create instance of Vacancyanalis
             # Extract all elements
             vacancy.extract() # 
             # Store all elements
