@@ -146,6 +146,7 @@ async def _skills(ctx):
     """
     Function to send Location Summary
     """
+    await ctx.send("Preparing to send Skills")
     if ctx.channel.id not in [data_engineer_channel, data_analist_channel, business_intelligence_channel, product_owner_channel]: 
         # Check if in registered channels
         await ctx.send(f"Command $location works only in Vacancy Channels")
@@ -153,7 +154,9 @@ async def _skills(ctx):
     
     elif ctx.channel.id == data_engineer_channel:
         # Create Chart
-        image_path = skills_statistics("Data_Engineer")
+        await ctx.send("Creating Image")
+        image_path = skills_statistics("Data_Engineer") # unable to create image in Docker-Compose
+        await ctx.send("Image created")
         
     elif ctx.channel.id == data_analist_channel:
         # Create Chart
@@ -176,6 +179,7 @@ async def _skills(ctx):
         image.save(image_binary, "PNG")
         image_binary.seek(0)
         await ctx.send(file=discord.File(fp=image_binary, filename="skills_stats.png"))
+    await ctx.send("Skills send complete")
 
 # Respond on Message
 @bot.command(name="welcome")

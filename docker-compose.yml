@@ -14,8 +14,17 @@ services:
     networks:
       - database-api
   
-  extract:
-    build: ./etl
+  # extract:
+  #   build: ./etl
+  #   container_name: 'Extract'
+  #   networks:
+  #     - database-api
+  #   depends_on:
+  #     - database
+    
+  discord:
+    build: ./discord_bot
+    container_name: 'Discord'
     networks:
       - database-api
     depends_on:
@@ -23,6 +32,7 @@ services:
 
 volumes:
   mongodata:
+
 networks:
   database-api:
 
