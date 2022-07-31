@@ -10,7 +10,7 @@ services:
     ports:
     - 27017:27017
     volumes:
-      - ./db:/data/db
+      - mongodata:/data/db
     networks:
       - database-api
   
@@ -21,8 +21,8 @@ services:
     depends_on:
       - database
 
-
-
+volumes:
+  mongodata:
 networks:
   database-api:
 
